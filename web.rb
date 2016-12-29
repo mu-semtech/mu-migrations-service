@@ -1,3 +1,5 @@
+require 'net/http'
+
 MU_MIGRATIONS = RDF::Vocabulary.new('http://mu.semte.ch/vocabularies/migrations/')
 
 # see https://github.com/mu-semtech/mu-ruby-template for more info
@@ -42,6 +44,7 @@ class Migration
   end
 
   def execute!
+    # TODO log.info "Executing migration #{filename}"
     @executed = true
     # Execute the update
     @endpoint.call(self.content)
@@ -59,9 +62,8 @@ class Migration
   end
 end
 
-get '/' do
-  content_type 'application/json'
-  endpoint = Proc.new { |q| query q }
+def execute_migrations
+  endpoint = Proc.new { |q| SinatraTemplate::Helpers.query q }
   locations = Dir.glob('/data/migrations/*.sparql')
   migrations = locations.map { |location| Migration.new location, endpoint }
   migrations.sort! do |a,b|
@@ -69,14 +71,36 @@ get '/' do
     a.order <=> b.order
   end
 
+  puts "There are #{migrations.length} migrations defined"
+
   migrations.each do |migration|
     migration.execute! unless migration.executed?
   end
-
-  {
-    data: {
-      attributes: { hello: 'world' },
-      migrations: migrations
-    }
-  }.to_json
+  puts "All migrations executed"
 end
+
+def is_database_up?
+  begin
+    location = URI('http://database:8890/sparql')
+    response = Net::HTTP.get_response( location )
+    return response.is_a? Net::HTTPSuccess
+  rescue Errno::ECONNREFUSED
+    return false
+  end
+end
+
+def wait_for_database
+  until is_database_up?
+    puts "Waiting for database... "
+    sleep 2
+  end
+
+  puts "Database is up"
+end
+
+def boot
+  wait_for_database
+  execute_migrations
+end
+
+boot
