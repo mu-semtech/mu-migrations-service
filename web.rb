@@ -4,6 +4,9 @@ MU_MIGRATIONS = RDF::Vocabulary.new('http://mu.semte.ch/vocabularies/migrations/
 
 # see https://github.com/mu-semtech/mu-ruby-template for more info
 class Migration
+
+  include SinatraTemplate::Utils
+
   def initialize( location, endpoint )
     @location = location
     @endpoint = endpoint
@@ -36,7 +39,7 @@ class Migration
   def executed?
     @executed ||= @endpoint.call(
       "ASK { " +
-      "  GRAPH <#{Sinatra::Application.settings.graph}> { " +
+      "  GRAPH <#{graph}> { " +
       "    ?migration a <#{MU_MIGRATIONS.migration}>;" +
       "               <#{MU_MIGRATIONS.filename}> #{filename.sparql_escape}." +
       "  }" +
@@ -44,13 +47,13 @@ class Migration
   end
 
   def execute!
-    # TODO log.info "Executing migration #{filename}"
+    log.info "Executing migration #{filename}"
     @executed = true
-    # Execute the update
+    log.debug "Executing the migration query"
     @endpoint.call(self.content)
-    # Register the migration
+    log.debug "Registering the migration"
     @endpoint.call "INSERT DATA {" +
-                  "  GRAPH <#{Sinatra::Application.settings.graph}> { " +
+                  "  GRAPH <#{graph}> { " +
                   "    <#{self.uri}> a <#{MU_MIGRATIONS.migration}>;" +
                   "                  <#{MU_MIGRATIONS.filename}> #{filename.sparql_escape}." +
                   "  }" +
@@ -63,7 +66,7 @@ class Migration
 end
 
 def execute_migrations
-  endpoint = Proc.new { |q| SinatraTemplate::Helpers.query q }
+  endpoint = Proc.new { |q| SinatraTemplate::Utils.query q }
   locations = Dir.glob('/data/migrations/*.sparql')
   migrations = locations.map { |location| Migration.new location, endpoint }
   migrations.sort! do |a,b|
@@ -71,17 +74,17 @@ def execute_migrations
     a.order <=> b.order
   end
 
-  puts "There are #{migrations.length} migrations defined"
+  log.info "There are #{migrations.length} migrations defined"
 
   migrations.each do |migration|
     migration.execute! unless migration.executed?
   end
-  puts "All migrations executed"
+  log.info "All migrations executed"
 end
 
 def is_database_up?
   begin
-    location = URI('http://database:8890/sparql')
+    location = URI(ENV['MU_SPARQL_ENDPOINT'])
     response = Net::HTTP.get_response( location )
     return response.is_a? Net::HTTPSuccess
   rescue Errno::ECONNREFUSED
@@ -91,11 +94,11 @@ end
 
 def wait_for_database
   until is_database_up?
-    puts "Waiting for database... "
+    log.info "Waiting for database... "
     sleep 2
   end
 
-  puts "Database is up"
+  log.info "Database is up"
 end
 
 def boot
