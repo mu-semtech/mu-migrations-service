@@ -67,7 +67,7 @@ end
 
 def execute_migrations
   endpoint = Proc.new { |q| SinatraTemplate::Utils.query q }
-  locations = Dir.glob('/data/migrations/*.sparql')
+  locations = Dir.glob('/data/migrations/**/*.sparql')
   migrations = locations.map { |location| Migration.new location, endpoint }
   migrations.sort! do |a,b|
     # I'm assuming no numbers will be in the path, this may be wrong
