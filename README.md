@@ -10,12 +10,9 @@ semantics may change.
 ## How to
 
 Migrations are specified in files, to be executed in the order of
-their filename.  It is advised to use the unix system time as the
-basis for the filename of your migration, postfixed with a short name
-of what the migration performs.
-
-In the future, we intend multiple folders to be supported, so the
-migrations can be grouped on a logical level.
+their filename. The files may reside in subfolders. It is advised
+to use the unix system time as the basis for the filename of your
+migration, postfixed with a short name of what the migration performs.
 
 ### Specifying the migration
 
@@ -56,7 +53,7 @@ query like:
 
 Run the migrations service in your pipeline, add the
 migrations-service to your mu-project and make sure all migrations are
-available.
+available in `/data/migrations`. The migrations may be grouped in subfolders.
 
 ```
     migrationsservice:
