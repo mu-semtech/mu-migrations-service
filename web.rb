@@ -62,7 +62,7 @@ class Migration
   end
 
   def to_s
-    "#{self.location} #{if executed? then "V" else "X" end}"
+    "#{self.location} #{if executed? then "[DONE]" else "[NOT EXECUTED]" end}"
   end
 end
 
@@ -77,10 +77,14 @@ def execute_migrations
 
   log.info "There are #{migrations.length} migrations defined"
 
+  summary = "\n\nMIGRATIONS STATUS\n"
+  summary << "-----------------\n"
   migrations.each do |migration|
     migration.execute! unless migration.executed?
+    summary << "#{migration}\n"
   end
   log.info "All migrations executed"
+  log.info summary
 end
 
 def is_database_up?
