@@ -40,7 +40,7 @@ class Migration
     @executed ||= @endpoint.call(
       "ASK { " +
       "  GRAPH <#{graph}> { " +
-      "    ?migration a <#{MU_MIGRATIONS.migration}>;" +
+      "    ?migration a <#{MU_MIGRATIONS.Migration}>;" +
       "               <#{MU_MIGRATIONS.filename}> #{filename.sparql_escape}." +
       "  }" +
       " }")
@@ -54,8 +54,9 @@ class Migration
     log.debug "Registering the migration"
     @endpoint.call "INSERT DATA {" +
                   "  GRAPH <#{graph}> { " +
-                  "    <#{self.uri}> a <#{MU_MIGRATIONS.migration}>;" +
-                  "                  <#{MU_MIGRATIONS.filename}> #{filename.sparql_escape}." +
+                  "    <#{self.uri}> a <#{MU_MIGRATIONS.Migration}>;" +
+                  "                  <#{MU_MIGRATIONS.filename}> #{filename.sparql_escape};" +
+                  "                  <#{MU_MIGRATIONS.executedAt}> #{DateTime.now.sparql_escape}." +
                   "  }" +
                   "}"
   end
