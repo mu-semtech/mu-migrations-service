@@ -1,11 +1,8 @@
-# [WIP] mu-migrations-service
+# mu-migrations-service
 
 The mu-migrations-service runs migrations on the database.  This
-currently includes only SPARQL queries.  We intend more formats to be
-supported in the future.
-
-This service is **Work In Progress** it does not operate yet, and its
-semantics may change.
+currently includes SPARQL queries (*.sparql) and Turtle files (*.ttl).
+We intend more formats to be supported in the future.
 
 ## How to
 
@@ -16,6 +13,7 @@ migration, postfixed with a short name of what the migration performs.
 
 ### Specifying the migration
 
+#### SPARQL queries
 Specify the migration in a file, like
 `./config/migrations/20160808225103-statuses.sparql` containing a SPARQL
 query like:
@@ -49,6 +47,39 @@ query like:
     }
 ```
 
+#### Turtle files
+Specify the migration in a file, like
+`./config/migrations/20160808225103-statuses.ttl` containing triples in Turtle format like:
+
+```
+    @prefix dct: <http://purl.org/dc/terms/> .
+    @prefix tac: <http://tasks-at-hand.com/vocabularies/core/> .
+    @prefix ext: <http://mu.semte.ch/vocabularies/ext/> .
+    @prefix rm: <http://mu.semte.ch/vocabularies/logical-delete/> .
+    @prefix typedLiterals: <http://mu.semte.ch/vocabularies/typed-literals/> .
+    @prefix mu: <http://mu.semte.ch/vocabularies/core/> .
+    @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+    @prefix app: <http://mu.semte.ch/app/> .
+    @prefix owl: <http://www.w3.org/2002/07/owl#> .
+    @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+    <http://tasks-at-hand.com/resources/statuses/not_started>
+          a tac:Status;
+          mu:uuid "wellknown-status-not_started";
+          dct:title "not started".
+    <http://tasks-at-hand.com/resources/statuses/ongoing>
+          a tac:Status;
+          mu:uuid "wellknown-status-ongoing";
+          dct:title "ongoing".
+    <http://tasks-at-hand.com/resources/statuses/done>
+          a tac:Status;
+          mu:uuid "wellknown-status-done";
+          dct:title "done".
+```
+
+The Turtle files will be imported in the `<http://mu.semte.ch/application>` graph.
+
+
 ### Sharing the migration with the service
 
 Run the migrations service in your pipeline, add the
@@ -61,7 +92,7 @@ available in `/data/migrations`. The migrations may be grouped in subfolders.
       links:
         - db:database
       volumes:
-        - "./config/migrations:/data/migrations"
+        - ./config/migrations:/data/migrations
 ```        
 
 The migration will be ran when the mu-migrations-service starts up,
