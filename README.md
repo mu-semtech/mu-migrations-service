@@ -1,7 +1,7 @@
 # mu-migrations-service
 
 The mu-migrations-service runs migrations on the database.  This
-currently includes SPARQL queries (*.sparql) and Turtle files (*.ttl).
+currently includes SPARQL queries (`*.sparql`) and Turtle files (`*.ttl`).
 We intend more formats to be supported in the future.
 
 ## How to
