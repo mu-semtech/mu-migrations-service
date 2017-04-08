@@ -7,9 +7,8 @@ class Migration
 
   include SinatraTemplate::Utils
 
-  def initialize( location, endpoint )
+  def initialize( location )
     @location = location
-    @endpoint = endpoint
   end
 
   def uri
@@ -37,7 +36,7 @@ class Migration
   end
 
   def executed?
-    @executed ||= @endpoint.call(
+    @executed ||= query(
       "ASK { " +
       "  GRAPH <#{graph}> { " +
       "    ?migration a <#{MU_MIGRATIONS.Migration}>;" +
@@ -49,10 +48,20 @@ class Migration
   def execute!
     log.info "Executing migration #{filename}"
     @executed = true
-    log.debug "Executing the migration query"
-    @endpoint.call(self.content)
+
+    if filename.end_with? ".sparql"
+      log.debug "Executing the migration query"
+      query(self.content)
+    elsif filename.end_with? ".ttl"
+      log.debug "Importing the migration file"
+      data = RDF::Graph.load(self.location, format: :ttl)
+      sparql_client.insert_data(data, graph: graph)
+    else
+      log.warn "Unsupported file format #{filename}"
+    end
+
     log.debug "Registering the migration"
-    @endpoint.call "INSERT DATA {" +
+    update "INSERT DATA {" +
                   "  GRAPH <#{graph}> { " +
                   "    <#{self.uri}> a <#{MU_MIGRATIONS.Migration}>;" +
                   "                  <#{MU_MIGRATIONS.filename}> #{filename.sparql_escape};" +
@@ -67,9 +76,10 @@ class Migration
 end
 
 def execute_migrations
-  endpoint = Proc.new { |q| SinatraTemplate::Utils.query q }
   locations = Dir.glob('/data/migrations/**/*.sparql')
-  migrations = locations.map { |location| Migration.new location, endpoint }
+  locations += Dir.glob('/data/migrations/**/*.ttl')
+  
+  migrations = locations.map { |location| Migration.new location }
   migrations.sort! do |a,b|
     # I'm assuming no numbers will be in the path, this may be wrong
     a.order <=> b.order
