@@ -32,7 +32,7 @@ class Migration
   end
 
   def content
-    @content ||= File.open(self.location).read
+    @content ||= File.open(self.location, 'r:UTF-8').read
   end
 
   def executed?
@@ -78,7 +78,7 @@ end
 def execute_migrations
   locations = Dir.glob('/data/migrations/**/*.sparql')
   locations += Dir.glob('/data/migrations/**/*.ttl')
-  
+
   migrations = locations.map { |location| Migration.new location }
   migrations.sort! do |a,b|
     # I'm assuming no numbers will be in the path, this may be wrong
