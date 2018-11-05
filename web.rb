@@ -1,4 +1,5 @@
 require 'net/http'
+require 'securerandom'
 
 MU_MIGRATIONS = RDF::Vocabulary.new('http://mu.semte.ch/vocabularies/migrations/')
 
@@ -55,7 +56,7 @@ class Migration
     elsif filename.end_with? ".ttl"
       log.debug "Importing the migration file"
       data = RDF::Graph.load(self.location, format: :ttl)
-      sparql_client.insert_data(data, graph: graph)
+      batch_insert(data, graph: graph)
     else
       log.warn "Unsupported file format #{filename}"
     end
@@ -72,6 +73,23 @@ class Migration
 
   def to_s
     "#{self.location} #{if executed? then "[DONE]" else "[NOT EXECUTED]" end}"
+  end
+
+  private
+  def batch_insert(data, graph:, batch_size: 3000)
+    log.info("dataset of #{data.size} triples will be inserted in batches of #{batch_size} triples")
+    temp_graph = "http://migrations.mu.semte.ch/#{SecureRandom.uuid}"
+    begin
+      data.each_slice(batch_size) do |slice|
+        sparql_client.insert_data(slice, graph: temp_graph)
+      end
+      update("ADD <#{temp_graph}> TO <#{graph}>")
+    rescue => e
+      log.error("error batch loading triples, batch_size #{batch_size}")
+      raise e
+    ensure
+      update("DROP SILENT GRAPH <#{temp_graph}>")
+    end
   end
 end
 
