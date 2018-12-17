@@ -54,9 +54,17 @@ class Migration
       log.debug "Executing the migration query"
       query(self.content)
     elsif filename.end_with? ".ttl"
-      log.debug "Importing the migration file"
       data = RDF::Graph.load(self.location, format: :ttl)
-      batch_insert(data, graph: graph)
+      if File.exists?(self.location.gsub(".ttl",".graph"))
+        File.open(self.location.gsub(".ttl",".graph")) do |file|
+          first_line = file.readlines.first.strip
+          log.debug "Importing the migration file into #{first_line}"
+          batch_insert(data, graph: first_line)
+        end
+      else
+        log.debug "Importing the migration file into #{graph}"
+        batch_insert(data, graph: graph)
+      end
     else
       log.warn "Unsupported file format #{filename}"
     end
