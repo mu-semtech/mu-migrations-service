@@ -77,7 +77,14 @@ Specify the migration in a file, like
           dct:title "done".
 ```
 
-The Turtle files will be imported in the `<http://mu.semte.ch/application>` graph.
+By default, the Turtle files will be imported in the `<http://mu.semte.ch/application>` graph.
+
+#### Graphs
+This feature is experimental. In case a `.graph`-file by the same name as a `.ttl`-file is present, the triples in the `.ttl`-file will be imported into the graph specified in its corresponding `.graph`-file, in the same fashion as [OpenLink Virtuoso](http://docs.openlinksw.com/virtuoso/rdfperfloading/#rdfperfloadingutility) does. The content of a `.graph`-file such as `./config/migrations/20160808225103-statuses.graph` may look like this:
+
+```
+http://mu.semte.ch/custom-graph
+```
 
 
 ### Sharing the migration with the service
@@ -93,7 +100,7 @@ available in `/data/migrations`. The migrations may be grouped in subfolders.
         - db:database
       volumes:
         - ./config/migrations:/data/migrations
-```        
+```
 
 The migration will be ran when the mu-migrations-service starts up,
 and output about the status of the ran migrations will be written to
