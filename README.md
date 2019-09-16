@@ -105,3 +105,10 @@ available in `/data/migrations`. The migrations may be grouped in subfolders.
 The migration will be ran when the mu-migrations-service starts up,
 and output about the status of the ran migrations will be written to
 the database for later inspection.
+
+## Configuration
+
+The migration service supports the following environment variables (+ the ones inherited from the [ruby template](https://github.com/mu-semtech/mu-ruby-template)):
+
+- `BATCH_SIZE`: amount of triples to insert in one go (default: 12000)
+- `MIN_BATCH_SIZE`: if the batch size drops below this number due to batch size resizing on error, the service will stop with an error. (default: 100)

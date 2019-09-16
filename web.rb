@@ -84,7 +84,7 @@ class Migration
   end
 
   private
-  def batch_insert(data, graph:, batch_size: 12000)
+  def batch_insert(data, graph:, batch_size: ENV['BATCH_SIZE'].to_i)
     log.info("dataset of #{data.size} triples will be inserted in batches of #{batch_size} triples")
     temp_graph = "http://migrations.mu.semte.ch/#{SecureRandom.uuid}"
     from = 0
@@ -99,7 +99,7 @@ class Migration
         rescue => e
           log.warn "error loading triples (#{e.message}), retrying with a smaller batch size"
           batch_size = batch_size / 2
-          if batch_size < 100
+          if batch_size < ENV['MINIMUM_BATCH_SIZE'].to_i
             log.error "batch size has dropped below 100, no longer retrying"
             raise e
           end
