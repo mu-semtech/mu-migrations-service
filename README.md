@@ -105,3 +105,19 @@ available in `/data/migrations`. The migrations may be grouped in subfolders.
 The migration will be ran when the mu-migrations-service starts up,
 and output about the status of the ran migrations will be written to
 the database for later inspection.
+
+## Configuration
+
+The migration service supports configuration via environment variables.
+
+### Large datasets and batch size
+Triple stores typically can only handle a certain amount of triples to be ingested per request. The migration service supports batching to split of large datasets in multiple requests. This can be configured with the `BATCH_SIZE` environment variable. If an error occurs during batch ingestion the batch size will be halved and the request retried until `MINIMUM_BATCH_SIZE` is reached. At this point an error will be thrown. 
+
+To make sure a dataset is loaded completely it will first be ingested into a temporary graph, on success the contents will be added to the target graph with a SPARQL Graph query. 
+
+
+- `BATCH_SIZE`: amount of triples to insert in one go (default: 12000)
+- `MINIMUM_BATCH_SIZE`: if the batch size drops below this number the service will stop with an error. (default: 100)
+
+### General configuration
+This microservice is based on the [mu-ruby template](https://github.com/mu-semtech/mu-ruby-template) and supports the environment variables documented in its [README](https://github.com/mu-semtech/mu-ruby-template#configuration).

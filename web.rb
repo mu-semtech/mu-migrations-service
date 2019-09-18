@@ -84,12 +84,26 @@ class Migration
   end
 
   private
-  def batch_insert(data, graph:, batch_size: 3000)
+  def batch_insert(data, graph:, batch_size: ENV['BATCH_SIZE'].to_i)
     log.info("dataset of #{data.size} triples will be inserted in batches of #{batch_size} triples")
     temp_graph = "http://migrations.mu.semte.ch/#{SecureRandom.uuid}"
+    from = 0
+    data = data.to_a
     begin
-      data.each_slice(batch_size) do |slice|
-        sparql_client.insert_data(slice, graph: temp_graph)
+      while from < data.size do
+        slice = data.slice(from, batch_size)
+        log.info("inserting triples #{from} to #{[from + batch_size, data.size].min}")
+        begin
+          sparql_client.insert_data(slice, graph: temp_graph)
+          from = from + batch_size
+        rescue => e
+          log.warn "error loading triples (#{e.message}), retrying with a smaller batch size"
+          batch_size = batch_size / 2
+          if batch_size < ENV['MINIMUM_BATCH_SIZE'].to_i
+            log.error "batch size has dropped below 100, no longer retrying"
+            raise e
+          end
+        end
       end
       update("ADD <#{temp_graph}> TO <#{graph}>")
     rescue => e
