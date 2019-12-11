@@ -36,14 +36,23 @@ class Migration
     @content ||= File.open(self.location, 'r:UTF-8').read
   end
 
-  def executed?
-    @executed ||= query(
-      "ASK { " +
-      "  GRAPH <#{graph}> { " +
-      "    ?migration a <#{MU_MIGRATIONS.Migration}>;" +
-      "               <#{MU_MIGRATIONS.filename}> #{filename.sparql_escape}." +
-      "  }" +
-      " }")
+  def executed?(*args)
+    if @executed.nil?
+      if args.size >= 1
+        executed_migrations = args[0]
+        @executed = executed_migrations.include?(self.filename)
+      else
+        @executed = query(
+          "ASK { " +
+          "  GRAPH <#{graph}> { " +
+          "    ?migration a <#{MU_MIGRATIONS.Migration}>;" +
+          "               <#{MU_MIGRATIONS.filename}> #{filename.sparql_escape}." +
+          "  }" +
+          " }")
+      end
+    end
+
+    @executed
   end
 
   def execute!
@@ -116,6 +125,8 @@ class Migration
 end
 
 def execute_migrations
+  executed_migrations = fetch_executed_migrations
+
   locations = Dir.glob('/data/migrations/**/*.sparql')
   locations += Dir.glob('/data/migrations/**/*.ttl')
 
@@ -130,11 +141,25 @@ def execute_migrations
   summary = "\n\nMIGRATIONS STATUS\n"
   summary << "-----------------\n"
   migrations.each do |migration|
-    migration.execute! unless migration.executed?
+    migration.execute! unless migration.executed? executed_migrations
     summary << "#{migration}\n"
   end
   log.info "All migrations executed"
   log.info summary
+end
+
+def fetch_executed_migrations
+  # COUNT DISTINCT MIGRATIONS
+  # SELECT ALL MIGRATIONS IN PAGES AND ADD TO LOCAL CACHE
+
+  solutions = query("SELECT DISTINCT ?migration ?filename WHERE { " +
+  "  GRAPH <#{graph}> { " +
+  "    ?migration a <#{MU_MIGRATIONS.Migration}> ;" +
+  "               <#{MU_MIGRATIONS.filename}> ?filename ." +
+  "  }" +
+  " }")
+
+  solutions.map { |solution| solution.filename.value }
 end
 
 def is_database_up?
