@@ -4,6 +4,15 @@ The mu-migrations-service runs migrations on the database.  This
 currently includes SPARQL queries (`*.sparql`) and Turtle files (`*.ttl`).
 We intend more formats to be supported in the future.
 
+The migrations service provides the following guarantees of execution:
+- Migrations are run sequentially in order of the first number in the filename, in ascending order. 
+
+  ⚠️ _Be sure to add a number in the filename to define the order, e.g. unix system time of file creation._ 
+  
+- A migration has to complete successfully in order for the next migration to start, there is no concurrent execution of migrations. 
+- If a migration fails to run, no subsequent migrations will be attempted. 
+- A migration that has been marked as completed will not be started again. The completion of a migration is stored in the database. 
+
 ## How to
 
 Migrations are specified in files, to be executed in the order of
