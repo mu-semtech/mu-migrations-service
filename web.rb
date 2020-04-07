@@ -63,7 +63,7 @@ class Migration
 
     if filename.end_with? ".sparql"
       log.debug "Executing the migration query"
-      query_sudo(self.content)
+      query_sudo_with_logging(self.content)
     elsif filename.end_with? ".ttl"
       data = RDF::Graph.load(self.location, format: :ttl)
       if File.exists?(self.location.gsub(".ttl",".graph"))
@@ -155,23 +155,23 @@ end
 
 def fetch_executed_migrations
   log.info("Fetching already executed migrations")
-  count_result = Mu::AuthSudo.query("SELECT (COUNT(DISTINCT ?migration) as ?count) WHERE { " +
-                                    "  GRAPH <#{graph}> { " +
-                                    "    ?migration a <#{MU_MIGRATIONS.Migration}> ." +
-                                    "  }" +
-                                    " }")
+  count_result = query_sudo_with_logging("SELECT (COUNT(DISTINCT ?migration) as ?count) WHERE { " +
+                                         "  GRAPH <#{graph}> { " +
+                                         "    ?migration a <#{MU_MIGRATIONS.Migration}> ." +
+                                         "  }" +
+                                         " }")
   total = if count_result.count > 0 then count_result.first[:count].value.to_i else 0 end
 
   batch_size = ENV['COUNT_BATCH_SIZE'].to_i
   executed_migrations = []
   from = 0
   while from < total do
-    solutions = Mu::AuthSudo.query("SELECT DISTINCT ?migration ?filename WHERE { " +
-                                   "  GRAPH <#{graph}> { " +
-                                   "    ?migration a <#{MU_MIGRATIONS.Migration}> ;" +
-                                   "               <#{MU_MIGRATIONS.filename}> ?filename ." +
-                                   "  }" +
-                                   " } LIMIT #{batch_size} OFFSET #{from}")
+    solutions = query_sudo_with_logging("SELECT DISTINCT ?migration ?filename WHERE { " +
+                                        "  GRAPH <#{graph}> { " +
+                                        "    ?migration a <#{MU_MIGRATIONS.Migration}> ;" +
+                                        "               <#{MU_MIGRATIONS.filename}> ?filename ." +
+                                        "  }" +
+                                        " } LIMIT #{batch_size} OFFSET #{from}")
     executed_migrations += solutions.map { |solution| solution.filename.value }
     from = from + batch_size
   end
@@ -197,6 +197,11 @@ def wait_for_database
   end
 
   log.info "Database is up"
+end
+
+def query_sudo_with_logging query
+  log.info "Executing sudo query: #{query}"
+  Mu::AuthSudo.query(query)
 end
 
 def boot
