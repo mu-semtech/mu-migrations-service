@@ -136,30 +136,46 @@ def execute_migrations
     a.order <=> b.order
   end
 
-  log.info "There are #{migrations.length} migrations defined"
-
   summary = "\n\nMIGRATIONS STATUS\n"
   summary << "-----------------\n"
+  count = 0
   migrations.each do |migration|
-    migration.execute! unless migration.executed? executed_migrations
+    unless migration.executed? executed_migrations
+      migration.execute!
+      count += 1
+    end
     summary << "#{migration}\n"
   end
+  log.info "#{count} migrations executed now"
   log.info "All migrations executed"
   log.info summary
 end
 
 def fetch_executed_migrations
-  # COUNT DISTINCT MIGRATIONS
-  # SELECT ALL MIGRATIONS IN PAGES AND ADD TO LOCAL CACHE
+  log.info("Fetching already executed migrations")
+  count_result = query("SELECT (COUNT(DISTINCT ?migration) as ?count) WHERE { " +
+                       "  GRAPH <#{graph}> { " +
+                       "    ?migration a <#{MU_MIGRATIONS.Migration}> ." +
+                       "  }" +
+                       " }")
+  total = if count_result.count > 0 then count_result.first[:count].value.to_i else 0 end
 
-  solutions = query("SELECT DISTINCT ?migration ?filename WHERE { " +
-  "  GRAPH <#{graph}> { " +
-  "    ?migration a <#{MU_MIGRATIONS.Migration}> ;" +
-  "               <#{MU_MIGRATIONS.filename}> ?filename ." +
-  "  }" +
-  " }")
+  batch_size = ENV['COUNT_BATCH_SIZE'].to_i
+  executed_migrations = []
+  from = 0
+  while from < total do
+    solutions = query("SELECT DISTINCT ?migration ?filename WHERE { " +
+                      "  GRAPH <#{graph}> { " +
+                      "    ?migration a <#{MU_MIGRATIONS.Migration}> ;" +
+                      "               <#{MU_MIGRATIONS.filename}> ?filename ." +
+                      "  }" +
+                      " } LIMIT #{batch_size} OFFSET #{from}")
+    executed_migrations += solutions.map { |solution| solution.filename.value }
+    from = from + batch_size
+  end
 
-  solutions.map { |solution| solution.filename.value }
+  log.info "#{total} migrations already executed before"
+  executed_migrations
 end
 
 def is_database_up?

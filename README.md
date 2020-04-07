@@ -5,13 +5,13 @@ currently includes SPARQL queries (`*.sparql`) and Turtle files (`*.ttl`).
 We intend more formats to be supported in the future.
 
 The migrations service provides the following guarantees of execution:
-- Migrations are run sequentially in order of the first number in the filename, in ascending order. 
+- Migrations are run sequentially in order of the first number in the filename, in ascending order.
 
-  ⚠️ _Be sure to add a number in the filename to define the order, e.g. unix system time of file creation._ 
-  
-- A migration has to complete successfully in order for the next migration to start, there is no concurrent execution of migrations. 
-- If a migration fails to run, no subsequent migrations will be attempted. 
-- A migration that has been marked as completed will not be started again. The completion of a migration is stored in the database. 
+  ⚠️ _Be sure to add a number in the filename to define the order, e.g. unix system time of file creation._
+
+- A migration has to complete successfully in order for the next migration to start, there is no concurrent execution of migrations.
+- If a migration fails to run, no subsequent migrations will be attempted.
+- A migration that has been marked as completed will not be started again. The completion of a migration is stored in the database.
 
 ## How to
 
@@ -120,9 +120,9 @@ the database for later inspection.
 The migration service supports configuration via environment variables.
 
 ### Large datasets and batch size
-Triple stores typically can only handle a certain amount of triples to be ingested per request. The migration service supports batching to split of large datasets in multiple requests. This can be configured with the `BATCH_SIZE` environment variable. If an error occurs during batch ingestion the batch size will be halved and the request retried until `MINIMUM_BATCH_SIZE` is reached. At this point an error will be thrown. 
+Triple stores typically can only handle a certain amount of triples to be ingested per request. The migration service supports batching to split of large datasets in multiple requests. This can be configured with the `BATCH_SIZE` environment variable. If an error occurs during batch ingestion the batch size will be halved and the request retried until `MINIMUM_BATCH_SIZE` is reached. At this point an error will be thrown.
 
-To make sure a dataset is loaded completely it will first be ingested into a temporary graph, on success the contents will be added to the target graph with a SPARQL Graph query. 
+To make sure a dataset is loaded completely it will first be ingested into a temporary graph, on success the contents will be added to the target graph with a SPARQL Graph query.
 
 
 - `BATCH_SIZE`: amount of triples to insert in one go (default: 12000)
