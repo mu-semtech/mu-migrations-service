@@ -1,5 +1,6 @@
 require 'net/http'
 require 'securerandom'
+require 'mu/auth-sudo'
 
 MU_MIGRATIONS = RDF::Vocabulary.new('http://mu.semte.ch/vocabularies/migrations/')
 
@@ -7,6 +8,7 @@ MU_MIGRATIONS = RDF::Vocabulary.new('http://mu.semte.ch/vocabularies/migrations/
 class Migration
 
   include SinatraTemplate::Utils
+  include Mu::AuthSudo::Helpers
 
   def initialize( location )
     @location = location
@@ -42,7 +44,7 @@ class Migration
         executed_migrations = args[0]
         @executed = executed_migrations.include?(self.filename)
       else
-        @executed = query(
+        @executed = query_sudo(
           "ASK { " +
           "  GRAPH <#{graph}> { " +
           "    ?migration a <#{MU_MIGRATIONS.Migration}>;" +
@@ -61,7 +63,7 @@ class Migration
 
     if filename.end_with? ".sparql"
       log.debug "Executing the migration query"
-      query(self.content)
+      query_sudo(self.content)
     elsif filename.end_with? ".ttl"
       data = RDF::Graph.load(self.location, format: :ttl)
       if File.exists?(self.location.gsub(".ttl",".graph"))
@@ -79,7 +81,7 @@ class Migration
     end
 
     log.debug "Registering the migration"
-    update "INSERT DATA {" +
+    update_sudo "INSERT DATA {" +
                   "  GRAPH <#{graph}> { " +
                   "    <#{self.uri}> a <#{MU_MIGRATIONS.Migration}>;" +
                   "                  <#{MU_MIGRATIONS.filename}> #{filename.sparql_escape};" +
@@ -103,7 +105,7 @@ class Migration
         slice = data.slice(from, batch_size)
         log.info("inserting triples #{from} to #{[from + batch_size, data.size].min}")
         begin
-          sparql_client.insert_data(slice, graph: temp_graph)
+          Mu::AuthSudo.sparql_client.insert_data(slice, graph: temp_graph)
           from = from + batch_size
         rescue => e
           log.warn "error loading triples (#{e.message}), retrying with a smaller batch size"
@@ -114,12 +116,12 @@ class Migration
           end
         end
       end
-      update("ADD <#{temp_graph}> TO <#{graph}>")
+      update_sudo("ADD <#{temp_graph}> TO <#{graph}>")
     rescue => e
       log.error("error batch loading triples, batch_size #{batch_size}")
       raise e
     ensure
-      update("DROP SILENT GRAPH <#{temp_graph}>")
+      update_sudo("DROP SILENT GRAPH <#{temp_graph}>")
     end
   end
 end
@@ -153,23 +155,23 @@ end
 
 def fetch_executed_migrations
   log.info("Fetching already executed migrations")
-  count_result = query("SELECT (COUNT(DISTINCT ?migration) as ?count) WHERE { " +
-                       "  GRAPH <#{graph}> { " +
-                       "    ?migration a <#{MU_MIGRATIONS.Migration}> ." +
-                       "  }" +
-                       " }")
+  count_result = Mu::AuthSudo.query("SELECT (COUNT(DISTINCT ?migration) as ?count) WHERE { " +
+                                    "  GRAPH <#{graph}> { " +
+                                    "    ?migration a <#{MU_MIGRATIONS.Migration}> ." +
+                                    "  }" +
+                                    " }")
   total = if count_result.count > 0 then count_result.first[:count].value.to_i else 0 end
 
   batch_size = ENV['COUNT_BATCH_SIZE'].to_i
   executed_migrations = []
   from = 0
   while from < total do
-    solutions = query("SELECT DISTINCT ?migration ?filename WHERE { " +
-                      "  GRAPH <#{graph}> { " +
-                      "    ?migration a <#{MU_MIGRATIONS.Migration}> ;" +
-                      "               <#{MU_MIGRATIONS.filename}> ?filename ." +
-                      "  }" +
-                      " } LIMIT #{batch_size} OFFSET #{from}")
+    solutions = Mu::AuthSudo.query("SELECT DISTINCT ?migration ?filename WHERE { " +
+                                   "  GRAPH <#{graph}> { " +
+                                   "    ?migration a <#{MU_MIGRATIONS.Migration}> ;" +
+                                   "               <#{MU_MIGRATIONS.filename}> ?filename ." +
+                                   "  }" +
+                                   " } LIMIT #{batch_size} OFFSET #{from}")
     executed_migrations += solutions.map { |solution| solution.filename.value }
     from = from + batch_size
   end

@@ -4,5 +4,5 @@ source "https://rubygems.org"
 
 git_source(:github) {|repo_name| "https://github.com/#{repo_name}" }
 
-# Added at 2019-12-16 10:37:51 +0100 by nielsv:
+gem "mu-auth-sudo", "~> 0.1.0"
 gem "rdf-turtle", "~> 3.0"
