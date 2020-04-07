@@ -1,5 +1,6 @@
 require 'net/http'
 require 'securerandom'
+require 'mu/auth-sudo'
 
 MU_MIGRATIONS = RDF::Vocabulary.new('http://mu.semte.ch/vocabularies/migrations/')
 
@@ -7,6 +8,7 @@ MU_MIGRATIONS = RDF::Vocabulary.new('http://mu.semte.ch/vocabularies/migrations/
 class Migration
 
   include SinatraTemplate::Utils
+  include Mu::AuthSudo::Helpers
 
   def initialize( location )
     @location = location
@@ -37,7 +39,7 @@ class Migration
   end
 
   def executed?
-    @executed ||= query(
+    @executed ||= query_sudo(
       "ASK { " +
       "  GRAPH <#{graph}> { " +
       "    ?migration a <#{MU_MIGRATIONS.Migration}>;" +
@@ -52,7 +54,7 @@ class Migration
 
     if filename.end_with? ".sparql"
       log.debug "Executing the migration query"
-      query(self.content)
+      query_sudo(self.content)
     elsif filename.end_with? ".ttl"
       data = RDF::Graph.load(self.location, format: :ttl)
       if File.exists?(self.location.gsub(".ttl",".graph"))
@@ -70,7 +72,7 @@ class Migration
     end
 
     log.debug "Registering the migration"
-    update "INSERT DATA {" +
+    update_sudo "INSERT DATA {" +
                   "  GRAPH <#{graph}> { " +
                   "    <#{self.uri}> a <#{MU_MIGRATIONS.Migration}>;" +
                   "                  <#{MU_MIGRATIONS.filename}> #{filename.sparql_escape};" +
@@ -94,7 +96,7 @@ class Migration
         slice = data.slice(from, batch_size)
         log.info("inserting triples #{from} to #{[from + batch_size, data.size].min}")
         begin
-          sparql_client.insert_data(slice, graph: temp_graph)
+          Mu::AuthSudo.sparql_client.insert_data(slice, graph: temp_graph)
           from = from + batch_size
         rescue => e
           log.warn "error loading triples (#{e.message}), retrying with a smaller batch size"
@@ -105,12 +107,12 @@ class Migration
           end
         end
       end
-      update("ADD <#{temp_graph}> TO <#{graph}>")
+      update_sudo("ADD <#{temp_graph}> TO <#{graph}>")
     rescue => e
       log.error("error batch loading triples, batch_size #{batch_size}")
       raise e
     ensure
-      update("DROP SILENT GRAPH <#{temp_graph}>")
+      update_sudo("DROP SILENT GRAPH <#{temp_graph}>")
     end
   end
 end

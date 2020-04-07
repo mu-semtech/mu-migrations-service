@@ -95,7 +95,6 @@ This feature is experimental. In case a `.graph`-file by the same name as a `.tt
 http://mu.semte.ch/custom-graph
 ```
 
-
 ### Sharing the migration with the service
 
 Run the migrations service in your pipeline, add the
@@ -130,3 +129,7 @@ To make sure a dataset is loaded completely it will first be ingested into a tem
 
 ### General configuration
 This microservice is based on the [mu-ruby template](https://github.com/mu-semtech/mu-ruby-template) and supports the environment variables documented in its [README](https://github.com/mu-semtech/mu-ruby-template#configuration).
+
+### Working with mu-authorization
+
+Experimental: You can hook the migrations service onto mu-authorization.  The migrations service will add the `mu-auth-sudo` header and execute migrations with elevated priviledges.  Support is experimental and we'd love to hear about your experience with this feature so we can harden it.
