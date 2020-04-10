@@ -1,0 +1,20 @@
+{
+  "version": "0.1",
+  "scripts": [
+    {
+      "documentation": {
+        "command": "new",
+        "description": "Creates a new migration",
+        "arguments": ["name"]
+      },
+      "environment": {
+        "image": "ubuntu",
+        "interactive": true,
+        "script": "new/run.sh",
+      },
+      "mounts": {
+        "app": "/data/app/"
+      }
+    }
+  ]
+}
