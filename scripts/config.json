@@ -36,11 +36,6 @@
     {
       "type": "mu-cli",
       "source": "install/"
-    },
-    {
-      "type": "script",
-      "name": "new",
-      "arguments": ["first-migration"]
     }
   ]
 }
