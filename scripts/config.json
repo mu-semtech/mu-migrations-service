@@ -4,8 +4,8 @@
     {
       "documentation": {
         "command": "new",
-        "description": "Creates a new migration",
-        "arguments": ["name"]
+        "description": "Creates a new migration.\nFormat may be ttl or sparql.\nName is a description of the migration, eg \"add-default-admin-users\".",
+        "arguments": ["format", "name"]
       },
       "environment": {
         "image": "ubuntu",
