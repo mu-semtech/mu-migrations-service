@@ -65,16 +65,21 @@ class Migration
       log.debug "Executing the migration query"
       query_sudo_with_logging(self.content)
     elsif filename.end_with? ".ttl"
-      data = RDF::Graph.load(self.location, format: :ttl)
-      if File.exists?(self.location.gsub(".ttl",".graph"))
-        File.open(self.location.gsub(".ttl",".graph")) do |file|
-          first_line = file.readlines.first.strip
-          log.debug "Importing the migration file into #{first_line}"
-          batch_insert(data, graph: first_line)
+      begin
+        data = RDF::Graph.load(self.location, format: :ttl, validate: true)
+        if File.exists?(self.location.gsub(".ttl",".graph"))
+          File.open(self.location.gsub(".ttl",".graph")) do |file|
+            first_line = file.readlines.first.strip
+            log.debug "Importing the migration file into #{first_line}"
+            batch_insert(data, graph: first_line)
+          end
+        else
+          log.debug "Importing the migration file into #{graph}"
+          batch_insert(data, graph: graph)
         end
-      else
-        log.debug "Importing the migration file into #{graph}"
-        batch_insert(data, graph: graph)
+      rescue => e
+        log.error "Invalid Turtle file #{filename}"
+        raise e
       end
     else
       log.warn "Unsupported file format #{filename}"
