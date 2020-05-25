@@ -15,21 +15,6 @@
       "mounts": {
         "app": "/data/app/"
       }
-    },
-    {
-      "documentation": {
-        "command": "old",
-        "description": "Creates an old migration ;-)",
-        "arguments": ["name"]
-      },
-      "environment": {
-        "image": "ubuntu",
-        "interactive": true,
-        "script": "new/run.sh"
-      },
-      "mounts": {
-        "app": "/data/app/"
-      }
     }
   ],
   "install": [
