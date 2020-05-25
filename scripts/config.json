@@ -1,0 +1,26 @@
+{
+  "version": "0.1",
+  "scripts": [
+    {
+      "documentation": {
+        "command": "new",
+        "description": "Creates a new migration.\nFormat may be ttl or sparql.\nName is a description of the migration, eg \"add-default-admin-users\".",
+        "arguments": ["format", "name"]
+      },
+      "environment": {
+        "image": "ubuntu",
+        "interactive": true,
+        "script": "new/run.sh"
+      },
+      "mounts": {
+        "app": "/data/app/"
+      }
+    }
+  ],
+  "install": [
+    {
+      "type": "mu-cli",
+      "source": "install/"
+    }
+  ]
+}

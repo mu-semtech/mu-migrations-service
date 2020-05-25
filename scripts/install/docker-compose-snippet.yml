@@ -1,0 +1,6 @@
+migrations:
+  image: semtech/mu-migrations-service
+  links:
+    - db:database
+  volumes:
+    - ./config/migrations:/data/migrations
