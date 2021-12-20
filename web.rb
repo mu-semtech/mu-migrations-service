@@ -86,7 +86,8 @@ class Migration
     end
 
     log.debug "Registering the migration"
-    update_sudo "INSERT DATA {" +
+    update_sudo   " PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>" +
+                  " INSERT DATA {" +
                   "  GRAPH <#{graph}> { " +
                   "    <#{self.uri}> a <#{MU_MIGRATIONS.Migration}>;" +
                   "                  <#{MU_MIGRATIONS.filename}> #{filename.sparql_escape};" +
