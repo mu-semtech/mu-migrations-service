@@ -188,10 +188,10 @@ end
 
 def is_database_up?
   begin
-    location = URI(ENV['MU_SPARQL_ENDPOINT'])
-    response = Net::HTTP.get_response( location )
-    return response.is_a? Net::HTTPSuccess
-  rescue Errno::ECONNREFUSED
+    query_sudo("ASK { ?s ?p ?o }")
+    return true
+  rescue StandardError => e
+    logger.debug e
     return false
   end
 end
