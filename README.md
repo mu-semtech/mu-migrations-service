@@ -152,7 +152,8 @@ Used prefix: `muMigr: <http://mu.semte.ch/vocabularies/migrations/>`
 The migration service supports configuration via environment variables.
 - `BATCH_SIZE`: amount of triples to insert in one go for a Turtle migration (default: 12000)
 - `MINIMUM_BATCH_SIZE`: if the batch size drops below this number the service will stop with an error. (default: 100)
-- `COUNT_BATCH_SIZE`: number of executed migrations to retrieve from the database in one go (default: 12000)
+- `COUNT_BATCH_SIZE`: number of executed migrations to retrieve from the database in one go (default: 10000). 
+*NOTE*: Make sure this is lower or equal to the maximum number of rows returned by the SPARQL endpoint.
 
 This microservice is based on the [mu-ruby template](https://github.com/mu-semtech/mu-ruby-template) and supports the environment variables documented in its [README](https://github.com/mu-semtech/mu-ruby-template#configuration).
 
