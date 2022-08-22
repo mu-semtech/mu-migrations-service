@@ -10,7 +10,7 @@ the `docker-compose.yml` file of your mu-project by adding the following snippet
 
 ```
     migrations:
-      image: semtech/mu-migrations-service
+      image: semtech/mu-migrations-service:0.8.0
       links:
         - triplestore:database
       volumes:
