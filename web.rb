@@ -188,10 +188,10 @@ end
 
 def is_database_up?
   begin
-    query_sudo("ASK { ?s ?p ?o }")
+    Mu::AuthSudo.query("ASK { ?s ?p ?o }")
     return true
   rescue StandardError => e
-    logger.debug e
+    log.warn e
     return false
   end
 end
