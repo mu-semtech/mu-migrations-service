@@ -28,3 +28,10 @@ mkdir -p /data/app/config/migrations/
 cd /data/app/config/migrations/
 touch $FILENAME
 echo "config/migrations/$FILENAME"
+
+if [[ "$MIGRATION_FORMAT" = "ttl" ]]
+then
+  GRAPH_FILE_NAME="$MIGRATION_TIMESTAMP-$MIGRATION_NAME.graph"
+  touch $GRAPH_FILE_NAME
+  echo "config/migrations/$GRAPH_FILE_NAME"
+fi
