@@ -235,7 +235,7 @@ An example SPARQL query migration that would change the *ext:title* predicate to
     }
 ```
 
-*[Primer](#primer), [Seeding data](#seeding-data) and [migrating the data-model](#migrating-the-data-model) have been adapted from Aad Versteden's mu.semte.ch article. You can view it [here](https://mu.semte.ch/2017/04/20/data-seeding-and-migration-with-the-migrations-service/)*
+*[Primer](#primer), [Seeding data](#seeding-data) and [Migrating the data-model](#migrating-the-data-model) have been adapted from Aad Versteden's mu.semte.ch article. You can view it [here](https://mu.semte.ch/2017/04/20/data-seeding-and-migration-with-the-migrations-service/)*
 
 
 ### Large datasets and batch size
