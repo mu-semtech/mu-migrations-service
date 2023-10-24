@@ -2,7 +2,7 @@ pipeline:
   build-and-push:
     image: plugins/docker
     settings:
-      repo: "${CI_REPO_OWNER##mu-}/mu-${CI_REPO_NAME}"
+      repo: "${CI_REPO_OWNER##mu-}/${CI_REPO_NAME}"
       tags: latest
     secrets: [docker_username, docker_password]
     when:
