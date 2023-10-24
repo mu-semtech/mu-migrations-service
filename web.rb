@@ -3,11 +3,12 @@ require 'securerandom'
 require 'mu/auth-sudo'
 
 MU_MIGRATIONS = RDF::Vocabulary.new('http://mu.semte.ch/vocabularies/migrations/')
+include Mu
 
 # see https://github.com/mu-semtech/mu-ruby-template for more info
 class Migration
 
-  include SinatraTemplate::Utils
+  include Mu
   include Mu::AuthSudo::Helpers
 
   def initialize( location )
