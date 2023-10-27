@@ -1,6 +1,7 @@
 require 'net/http'
 require 'securerandom'
 require 'mu/auth-sudo'
+require 'rdf/turtle'
 
 MU_MIGRATIONS = RDF::Vocabulary.new('http://mu.semte.ch/vocabularies/migrations/')
 include Mu
@@ -8,7 +9,6 @@ include Mu
 # see https://github.com/mu-semtech/mu-ruby-template for more info
 class Migration
 
-  include Mu
   include Mu::AuthSudo::Helpers
 
   def initialize( location )
@@ -68,7 +68,7 @@ class Migration
     elsif filename.end_with? ".ttl"
       begin
         data = RDF::Graph.load(self.location, format: :ttl, validate: true)
-        if File.exists?(self.location.gsub(".ttl",".graph"))
+        if File.exist?(self.location.gsub(".ttl",".graph"))
           File.open(self.location.gsub(".ttl",".graph")) do |file|
             first_line = file.readlines.first.strip
             log.debug "Importing the migration file into #{first_line}"
