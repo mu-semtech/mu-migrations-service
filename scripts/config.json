@@ -15,6 +15,21 @@
       "mounts": {
         "app": "/data/app/"
       }
+    },
+    {
+      "documentation": {
+        "command": "validate-ttl",
+        "description": "Validates the syntax of a Turtle file.",
+        "arguments": ["name"]
+      },
+      "environment": {
+        "image": "erikap/turtle-validator:1.0.0",
+        "interactive": false,
+        "script": "validate-ttl/run.sh"
+      },
+      "mounts": {
+        "app": "/data/app/"
+      }
     }
   ],
   "install": [
