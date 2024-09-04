@@ -19,8 +19,8 @@
     {
       "documentation": {
         "command": "validate-ttl",
-        "description": "Validates the syntax of a Turtle file.",
-        "arguments": ["name"]
+        "description": "Validates the syntax of a Turtle file.\nSupply a filename, e.g. 202040904123456-awesome-semanticworks.ttl",
+        "arguments": ["filename"]
       },
       "environment": {
         "image": "erikap/turtle-validator:1.0.0",
